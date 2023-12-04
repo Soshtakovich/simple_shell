@@ -1,0 +1,4 @@
+gcc -Wall -Werror -Wextra -pedantic -std=gnu89 -g -ggdb3 *.c -o hsh
+
+valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes ./hsh
+
