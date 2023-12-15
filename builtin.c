@@ -127,16 +127,82 @@ exit(2);
 */
 void hsh_cd(char **args, char **envp)
 {
+char *new_dir;
+char cwd[1024];
+
+/* If no argument is given, use $HOME */
 if (args[1] == NULL)
 {
-fprintf(stderr, "./hsh: cd: missing argument\n");
+new_dir = getenv("HOME");
+}
+else if (_strcmp(args[1], "-") == 0)
+{
+/* If the argument is "-", change to the previous directory */
+new_dir = getenv("OLDPWD");
+if (new_dir == NULL)
+{
+fprintf(stderr, "hsh: cd: OLDPWD not set\n");
+return;
+}
+fprintf(stdout, "%s\n", new_dir);
 }
 else
 {
-if (chdir(args[1]) != 0)
+new_dir = args[1];
+}
+
+/* Change the directory */
+if (chdir(new_dir) != 0)
 {
-perror("./hsh: cd: ");
+/* If chdir fails, print an error message */
+fprintf(stderr, "hsh: cd: %s: No such file or directory\n", new_dir);
+return;
+}
+
+/* Update the PWD environment variable */
+if (getcwd(cwd, sizeof(cwd)) != NULL)
+{
+update_pwd(envp, cwd);
+}
+else
+{
+/* If getcwd fails, print an error message */
+fprintf(stderr, "hsh: cd: error updating PWD\n");
 }
 }
-(void)envp;
+
+
+/**
+* update_pwd - Update the PWD environment variable with the new directory .
+* @new_pwd: Nerw working Directory
+* @envp: The environment variables (not used in this function).
+*/
+void update_pwd(char **envp, char *new_pwd)
+{
+/* Find the position of the PWD environment variable in envp */
+int index;
+int i;
+
+index = -1;
+
+for (i = 0; envp[i] != NULL; i++)
+{
+if (_strncmp(envp[i], "PWD=", 4) == 0)
+{
+index = i;
+break;
+}
+}
+
+/* If PWD is found, update its value using putenv */
+if (index != -1)
+{
+char env_var[1024];
+snprintf(env_var, sizeof(env_var), "PWD=%s", new_pwd);
+if (putenv(env_var) != 0)
+{
+perror("putenv");
+exit(EXIT_FAILURE);
+}
+}
 }
