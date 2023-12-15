@@ -50,6 +50,7 @@ void exe(char **envp, char **command, char *fullpath);
 
 void hsh_env(char **args, char **envp);
 void hsh_exit(char **args, char **envp);
+void update_pwd(char **envp, char *new_pwd);
 void hsh_cd(char **args, char **envp);
 void hsh_help(char **args, char **envp);
 void (*func)(char **args, char **envp);
